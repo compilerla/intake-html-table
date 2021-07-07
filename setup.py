@@ -34,5 +34,10 @@ setup(
     include_package_data=True,
     install_requires=install_requires,
     license="Apache 2.0",
+    entry_points={
+        "intake.drivers": [
+            "html_table = intake_html_table.source:HtmlTableSource",
+        ]
+    },
     keywords="intake, catalog",
 )

@@ -34,7 +34,7 @@ class BaseHtmlTableSource(base.DataSource):
         import bs4
         import fsspec
 
-        of = fsspec.open(self._uri)
+        of = fsspec.open(self._uri, **self.storage_options)
         with of as f:
             self._soup = bs4.BeautifulSoup(f.read(), "html.parser")
 
@@ -107,3 +107,93 @@ class BaseHtmlTableSource(base.DataSource):
     def read(self):
         self._get_schema()
         return self._dataframe
+
+
+class HtmlTableSource(BaseHtmlTableSource):
+    """
+    HTML table to dataframe reader (no partitioning).
+
+    Caches entire dataframe in memory.
+
+    Parameters
+    ----------
+    uri: str
+        Full path to resource containing an HTML table
+    infer_header: bool
+        True to infer a header from table when no columns are given. Default: True.
+    parse_anchors: bool
+        True to extract href and target from cells with anchors. Default: True.
+    selector: str
+        CSS-style selector for the table element. Default: 'table'
+    columns: list or None
+        List of expected column names. Default: None
+    """
+
+    name = "html_table"
+    version = "0.0.1"
+
+    def __init__(self, uri, infer_header=True, parse_anchors=True, selector="table", columns=None, **kwargs):
+        self.description = f"HTML table <{uri}>"
+        self._infer_header = infer_header
+        self._parse_anchors = parse_anchors
+        super().__init__(uri, selector=selector, columns=columns, **kwargs)
+
+    def _get_header(self):
+        """
+        Get the header row for this table.
+        """
+        if self._infer_header and not self._columns:
+            # try thead, fallback to first row in table
+            row = (self._table.find("thead") or self._table).find("tr")
+            header = [cell.get_text().strip() for cell in row.find_all(["th", "td"], recursive=False)] if row else None
+            self._columns = header
+        elif self._columns:
+            header = self._columns
+        else:
+            header = None
+        return header
+
+    def _find_rows(self, table):
+        """
+        Get top-level table rows with at least one data cell. When a header is defined, only get rows with matching data cells.
+        """
+        header = self._get_header()
+        source = self._table.find("tbody") or self._table
+
+        if header:
+
+            def filter(t):
+                return t.name == "tr" and len(t.find_all("td", recursive=False)) == len(header)
+
+        else:
+
+            def filter(t):
+                return t.name == "tr" and t.find_all("td", recursive=False)
+
+        return source.find_all(filter, recursive=False)
+
+    def _get_record(self, tr):
+        """
+        Convert the table row of data into a python dict.
+        """
+        header = self._get_header()
+        cells = tr.find_all("td", recursive=False)
+
+        def key(i):
+            return header[i] if header else str(i)
+
+        def value(i):
+            from collections import namedtuple
+
+            Anchor = namedtuple("anchor", ("text", "href", "target"))
+            cell = cells[i]
+            if self._parse_anchors and cell.find("a"):
+                a = cell.find("a")
+                return Anchor(a.get_text().strip(), a.get("href"), a.get("target"))
+            else:
+                return cell.get_text().strip()
+
+        if header is None or len(header) == len(cells):
+            return {key(i): value(i) for i in range(len(cells))}
+        else:
+            return None
