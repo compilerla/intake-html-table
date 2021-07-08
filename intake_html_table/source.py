@@ -11,21 +11,21 @@ class BaseHtmlTableSource(base.DataSource):
     container = "dataframe"
     partition_access = True
 
-    def __init__(self, uri, selector="table", columns=None, **kwargs):
-        self._uri = uri
-        self._selector = selector
-        self._columns = columns
+    def __init__(self, urlpath, selector="table", columns=None, **kwargs):
+        self.urlpath = urlpath
+        self.selector = selector
+        self.columns = columns
 
-        self._dataframe = None
-        self._soup = None
-        self._table = None
+        self.dataframe = None
+        self.soup = None
+        self.table = None
 
         super(BaseHtmlTableSource, self).__init__(**kwargs)
 
     def _close(self):
-        self._dataframe = None
-        self._soup = None
-        self._table = None
+        self.dataframe = None
+        self.soup = None
+        self.table = None
 
     def _load(self):
         """
@@ -34,33 +34,33 @@ class BaseHtmlTableSource(base.DataSource):
         import bs4
         import fsspec
 
-        of = fsspec.open(self._uri, **self.storage_options)
+        of = fsspec.open(self.urlpath, **self.storage_options)
         with of as f:
-            self._soup = bs4.BeautifulSoup(f.read(), "html.parser")
+            self.soup = bs4.BeautifulSoup(f.read(), "html.parser")
 
-        table = self._soup.select_one(self._selector)
+        table = self.soup.select_one(self.selector)
         if not table:
-            raise RuntimeError(f"Could not find <table> matching selector '{self._selector}' at: {self._uri}")
+            raise RuntimeError(f"Could not find <table> matching selector '{self.selector}' at: {self.urlpath}")
 
         self._check_header(table)
-        self._table = table
-        self._dataframe = self._get_dataframe(table)
+        self.table = table
+        self.dataframe = self._get_dataframe(table)
 
     def _check_header(self, table):
         """
         Verifies the expected table header row. Throws RuntimeError for invalid tables.
         """
-        if self._columns:
+        if self.columns:
             header = table.find("tr")
             cells = header.find_all(["th", "td"], recursive=False) if header else []
 
-            if len(cells) != len(self._columns):
-                raise RuntimeError(f"<table> with unexpected header row at: {self._uri}")
+            if len(cells) != len(self.columns):
+                raise RuntimeError(f"<table> with unexpected header row at: {self.urlpath}")
 
-            for i in range(len(self._columns)):
+            for i in range(len(self.columns)):
                 col = cells[i].get_text()
-                if col != self._columns[i]:
-                    raise RuntimeError(f"<table> column[{i}] got '{col}', expected '{self._columns[i]}' at: {self._uri}")
+                if col != self.columns[i]:
+                    raise RuntimeError(f"<table> column[{i}] got '{col}', expected '{self.columns[i]}' at: {self.urlpath}")
 
     def _find_rows(self, table):
         """
@@ -89,24 +89,24 @@ class BaseHtmlTableSource(base.DataSource):
         return dataframe(records)
 
     def _get_schema(self):
-        if self._dataframe is None:
+        if self.dataframe is None:
             self._load()
 
         return base.Schema(
             datashape=None,
-            dtype=self._dataframe.dtypes,
-            shape=self._dataframe.shape,
+            dtype=self.dataframe.dtypes,
+            shape=self.dataframe.shape,
             npartitions=1,
             extra_metadata={},
         )
 
     def _get_partition(self, i):
         self._get_schema()
-        return self._dataframe
+        return self.dataframe
 
     def read(self):
         self._get_schema()
-        return self._dataframe
+        return self.dataframe
 
 
 class HtmlTableSource(BaseHtmlTableSource):
@@ -117,7 +117,7 @@ class HtmlTableSource(BaseHtmlTableSource):
 
     Parameters
     ----------
-    uri: str
+    urlpath: str
         Full path to resource containing an HTML table
     infer_header: bool
         True to infer a header from table when no columns are given. Default: True.
@@ -132,23 +132,23 @@ class HtmlTableSource(BaseHtmlTableSource):
     name = "html_table"
     version = "0.0.1"
 
-    def __init__(self, uri, infer_header=True, parse_anchors=True, selector="table", columns=None, **kwargs):
-        self.description = f"HTML table <{uri}>"
-        self._infer_header = infer_header
-        self._parse_anchors = parse_anchors
-        super().__init__(uri, selector=selector, columns=columns, **kwargs)
+    def __init__(self, urlpath, infer_header=True, parse_anchors=True, selector="table", columns=None, **kwargs):
+        self.description = f"HTML table <{urlpath}>"
+        self.infer_header = infer_header
+        self.parse_anchors = parse_anchors
+        super().__init__(urlpath, selector=selector, columns=columns, **kwargs)
 
     def _get_header(self):
         """
         Get the header row for this table.
         """
-        if self._infer_header and not self._columns:
+        if self.infer_header and not self.columns:
             # try thead, fallback to first row in table
-            row = (self._table.find("thead") or self._table).find("tr")
+            row = (self.table.find("thead") or self.table).find("tr")
             header = [cell.get_text().strip() for cell in row.find_all(["th", "td"], recursive=False)] if row else None
-            self._columns = header
-        elif self._columns:
-            header = self._columns
+            self.columns = header
+        elif self.columns:
+            header = self.columns
         else:
             header = None
         return header
@@ -158,7 +158,7 @@ class HtmlTableSource(BaseHtmlTableSource):
         Get top-level table rows with at least one data cell. When a header is defined, only get rows with matching data cells.
         """
         header = self._get_header()
-        source = self._table.find("tbody") or self._table
+        source = self.table.find("tbody") or self.table
 
         if header:
 
@@ -187,7 +187,7 @@ class HtmlTableSource(BaseHtmlTableSource):
 
             Anchor = namedtuple("anchor", ("text", "href", "target"))
             cell = cells[i]
-            if self._parse_anchors and cell.find("a"):
+            if self.parse_anchors and cell.find("a"):
                 a = cell.find("a")
                 return Anchor(a.get_text().strip(), a.get("href"), a.get("target"))
             else:
