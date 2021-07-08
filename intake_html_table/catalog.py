@@ -56,6 +56,14 @@ class ApacheDirectoryCatalog(Catalog):
     def _path_to_name(self, path):
         return path.rstrip("/")
 
+    def _file_entry(self, name, urlpath, ext):
+        urlpath = urlpath if urlpath.startswith(self.urlpath) else f"{self.urlpath.rstrip('/')}/{urlpath}"
+        description = f"Apache server file <{urlpath}>"
+        args = {"urlpath": urlpath}
+        driver = "csv" if ext.find("csv") > -1 else "textfiles"
+
+        return LocalCatalogEntry(name, description, driver, True, args, getenv=False, getshell=False, catalog=self)
+
     def _subdir_entry(self, path, urlpath=None):
         name = self._path_to_name(path)
         urlpath = urlpath or f"{self.urlpath.rstrip('/')}/{path}"
@@ -85,6 +93,8 @@ class ApacheDirectoryCatalog(Catalog):
                     e = self._subdir_entry("parent", record["path"])
                 else:
                     e = self._subdir_entry(record["path"])
+            else:
+                e = self._file_entry(record["path"], record["path"], record["file_extension"])
 
             self._entries[e.name] = e
 
