@@ -12,6 +12,8 @@ class ApacheDirectoryCatalog(Catalog):
     ----------
     urlpath: str
         Full path to resource containing an HTML table
+    csv_kwargs: dict
+        Keyword configuration for reading CSV files.
 
     Additional kwargs are passed through to the base Catalog.
     """
@@ -20,9 +22,10 @@ class ApacheDirectoryCatalog(Catalog):
     version = "0.0.1"
     columns = {"Name": "object", "Last modified": "datetime64", "Size": "string", "Description": "string"}
 
-    def __init__(self, urlpath, **kwargs):
+    def __init__(self, urlpath, csv_kwargs={}, **kwargs):
         self.dataframe = None
         self.urlpath = urlpath.rstrip("/")
+        self.csv_kwargs = csv_kwargs
         self.description = f"Apache server directory <{urlpath}>"
         super(ApacheDirectoryCatalog, self).__init__(**kwargs)
 
@@ -67,6 +70,9 @@ class ApacheDirectoryCatalog(Catalog):
         driver = "csv" if urlpath.find(".csv") > -1 else "textfiles"
         description = f"Apache server file <{urlpath}>"
         args = {"urlpath": urlpath}
+
+        if self.csv_kwargs:
+            args["csv_kwargs"] = self.csv_kwargs
 
         return LocalCatalogEntry(name, description, driver, True, args, getenv=False, getshell=False, catalog=self)
 
