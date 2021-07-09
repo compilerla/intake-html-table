@@ -1,0 +1,31 @@
+// For format details, see https://aka.ms/devcontainer.json.
+{
+  "name": "intake-html-table",
+  "dockerComposeFile": "compose.yaml",
+  "service": "dev",
+  "workspaceFolder": "/intake-html-table",
+
+  // Set *default* container specific settings.json values on container create.
+  "settings": {
+      "python.pythonPath": "/usr/local/bin/python",
+      "python.languageServer": "Pylance",
+      "python.linting.enabled": true,
+      "files.trimTrailingWhitespace": true,
+      "files.insertFinalNewline": true,
+      "terminal.integrated.defaultProfile.linux": "bash",
+      "terminal.integrated.profiles.linux": {
+          "bash": {
+              "path": "/bin/bash"
+          }
+      },
+  },
+
+  // Add the IDs of extensions you want installed when the container is created.
+  "extensions": [
+      "ms-python.python",
+      "ms-python.vscode-pylance",
+  ],
+
+  // Use 'postCreateCommand' to run commands after the container is created.
+  "postCreateCommand": "pip install -r .devcontainer/requirements.txt && .devcontainer/pre-commit.sh",
+}
