@@ -7,6 +7,13 @@ class ApacheDirectoryCatalog(Catalog):
     Makes data sources out of an Apache Server Directory index page.
 
     Subdirectories become ``ApacheDirectoryCatalog`` entries in this catalog.
+
+    Parameters
+    ----------
+    urlpath: str
+        Full path to resource containing an HTML table
+
+    Additional kwargs are passed through to the base Catalog.
     """
 
     name = "apache_dir"
@@ -15,7 +22,7 @@ class ApacheDirectoryCatalog(Catalog):
 
     def __init__(self, urlpath, **kwargs):
         self.dataframe = None
-        self.urlpath = urlpath
+        self.urlpath = urlpath.rstrip("/")
         self.description = f"Apache server directory <{urlpath}>"
         super(ApacheDirectoryCatalog, self).__init__(**kwargs)
 
@@ -26,12 +33,12 @@ class ApacheDirectoryCatalog(Catalog):
 
         ```python
         {
-            "path": "string",
-            "modified": "datetime",
+            "name": "string",
+            "modified": "datetime64",
             "size": "int64",
             "description": "string",
             "is_directory": "boolean",
-            "file_extension": "string"
+            "full_path": "string"
         }
         ```
         """
@@ -40,38 +47,35 @@ class ApacheDirectoryCatalog(Catalog):
         if not anchor:
             return {}
 
-        parent = anchor.text.lower() == "parent directory"
         path = anchor.href
+        full_path = path if path.startswith(self.urlpath) else f"{self.urlpath}/{path}"
+        name = path.replace(self.urlpath, "").rstrip("/")
+        parent = anchor.text.lower() == "parent directory"
+        parent_dir = self.urlpath.rstrip(path)[: self.urlpath.rstrip(path).rindex("/")] + "/" if parent else None
         directory = path.endswith("/")
 
         return {
-            "path": path if not parent else self.urlpath.rstrip(path)[: self.urlpath.rstrip(path).rindex("/")] + "/",
+            "name": "parent" if parent else name,
             "modified": row._2,
             "size": row.Size.replace("-", ""),
             "description": row.Description,
             "is_directory": directory,
-            "file_extension": None if (directory or path.find(".") < 0) else path[path.rindex(".") :],  # noqa
+            "full_path": parent_dir if parent else full_path,
         }
 
-    def _path_to_name(self, path):
-        return path.rstrip("/")
-
-    def _file_entry(self, name, urlpath, ext):
-        urlpath = urlpath if urlpath.startswith(self.urlpath) else f"{self.urlpath.rstrip('/')}/{urlpath}"
+    def _file_entry(self, name, urlpath):
+        driver = "csv" if urlpath.find(".csv") > -1 else "textfiles"
         description = f"Apache server file <{urlpath}>"
         args = {"urlpath": urlpath}
-        driver = "csv" if ext.find("csv") > -1 else "textfiles"
 
         return LocalCatalogEntry(name, description, driver, True, args, getenv=False, getshell=False, catalog=self)
 
-    def _subdir_entry(self, path, urlpath=None):
-        name = self._path_to_name(path)
-        urlpath = urlpath or f"{self.urlpath.rstrip('/')}/{path}"
+    def _subdir_entry(self, path, urlpath):
         description = f"Apache Server directory <{urlpath}>"
         args = {"urlpath": urlpath}
         driver = ApacheDirectoryCatalog.name
 
-        e = LocalCatalogEntry(name, description, driver, True, args, getenv=False, getshell=False, catalog=self)
+        e = LocalCatalogEntry(path, description, driver, True, args, getenv=False, getshell=False, catalog=self)
 
         e._plugin = [ApacheDirectoryCatalog]
         e.container = "catalog"
@@ -88,13 +92,9 @@ class ApacheDirectoryCatalog(Catalog):
             record = self._process_row(row)
 
             if record["is_directory"]:
-                # special handling for the "Parent Directory" entry
-                if row.Index == 0:
-                    e = self._subdir_entry("parent", record["path"])
-                else:
-                    e = self._subdir_entry(record["path"])
+                e = self._subdir_entry(record["name"], record["full_path"])
             else:
-                e = self._file_entry(record["path"], record["path"], record["file_extension"])
+                e = self._file_entry(record["name"], record["full_path"])
 
             self._entries[e.name] = e
 

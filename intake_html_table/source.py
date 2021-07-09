@@ -6,6 +6,15 @@ class BaseHtmlTableSource(base.DataSource):
     Base class for an in-memory representation of data in an HTML table. This class cannot be used directly.
 
     Inherit from this class and implement `_find_rows(self, table)` and `_get_record(self, tr)` for new HTML table sources.
+
+    Parameters
+    ----------
+    urlpath: str
+        Full path to resource containing an HTML table
+    selector: str
+        CSS-style selector for the table element. Default: 'table'
+    columns: list or None
+        List of expected column names. Default: None
     """
 
     container = "dataframe"
