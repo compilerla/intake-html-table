@@ -45,5 +45,14 @@ def table_source(example_path):
     yield _table_source
 
 
-def test_container(table_source):
-    assert table_source().container == "dataframe"
+def test_plugin():
+    plugin = HtmlTableSource
+
+    assert isinstance(plugin.name, str)
+    assert isinstance(plugin.version, str)
+    assert isinstance(plugin.container, str)
+    assert isinstance(plugin.partition_access, bool)
+
+    assert plugin.name == "html_table"
+    assert plugin.container == "dataframe"
+    assert plugin.partition_access is True
