@@ -56,3 +56,22 @@ def test_plugin():
     assert plugin.name == "html_table"
     assert plugin.container == "dataframe"
     assert plugin.partition_access is True
+
+
+def test_open(table_source):
+    storage_options = {"storage": "options"}
+    metadata = {"meta": "data"}
+
+    src = table_source(storage_options=storage_options, metadata=metadata, extra="kwarg")
+
+    assert src.container == "dataframe"
+
+    assert src.description is None
+    assert src.storage_options == storage_options
+    assert src.metadata == metadata
+
+    expected = {"dataframes": None, "kwargs": {"extra": "kwarg"}}
+
+    for attr, value in expected.items():
+        assert hasattr(src, attr)
+        assert getattr(src, attr) == value
