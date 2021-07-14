@@ -37,22 +37,17 @@ class ApacheDirectoryCatalog(Catalog):
 
     def _close(self):
         self.dataframe = None
-        return super()._close()
 
     def _load(self):
         from intake_html_table import HtmlTableSource
 
         self._entries = {}
-
         # read and remove rows with all null values (like table separators)
         df = HtmlTableSource(self.urlpath).read().dropna(how="all")
-
         # fixup sizes
         df["Size"] = df["Size"].apply(self._expand_size)
-
         # convert to known dtypes
         self.dataframe = df.astype(self.columns)
-
         # add a catalog entry for each row
         self.dataframe.apply(self._add_entry, axis=1)
 
@@ -152,8 +147,3 @@ class ApacheDirectoryCatalog(Catalog):
         e.container = "catalog"
 
         return e
-
-    def read(self):
-        if self.dataframe is None:
-            self._load()
-        return self.dataframe
