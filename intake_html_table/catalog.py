@@ -33,7 +33,10 @@ class ApacheDirectoryCatalog(Catalog):
         self.urlpath = urlpath.rstrip("/")
         self.csv_kwargs = csv_kwargs
         self.storage_options = storage_options
-        self.description = f"Apache server directory <{urlpath}>"
+
+        if "description" not in kwargs:
+            kwargs["description"] = f"Apache server directory <{urlpath}>"
+
         super(ApacheDirectoryCatalog, self).__init__(**kwargs)
 
     def _close(self):
