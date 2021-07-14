@@ -28,10 +28,11 @@ class ApacheDirectoryCatalog(Catalog):
     version = "0.0.1"
     columns = {"Name": "string", "Last modified": "datetime64", "Size": "float64", "Description": "string"}
 
-    def __init__(self, urlpath, csv_kwargs={}, **kwargs):
+    def __init__(self, urlpath, csv_kwargs=None, storage_options=None, **kwargs):
         self.dataframe = None
         self.urlpath = urlpath.rstrip("/")
         self.csv_kwargs = csv_kwargs
+        self.storage_options = storage_options
         self.description = f"Apache server directory <{urlpath}>"
         super(ApacheDirectoryCatalog, self).__init__(**kwargs)
 
@@ -128,6 +129,8 @@ class ApacheDirectoryCatalog(Catalog):
 
         if self.csv_kwargs:
             args["csv_kwargs"] = self.csv_kwargs
+        if self.storage_options:
+            args["storage_options"] = self.storage_options
 
         return LocalCatalogEntry(name, description, driver, True, args, getenv=False, getshell=False, catalog=self)
 
