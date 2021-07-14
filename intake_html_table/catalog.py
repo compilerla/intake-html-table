@@ -6,9 +6,6 @@ from intake.catalog.local import LocalCatalogEntry
 import numpy as np
 
 
-Record = namedtuple("Record", ("name", "modified", "size", "description", "is_directory", "full_path"))
-
-
 class ApacheDirectoryCatalog(Catalog):
     """
     Makes data sources out of an Apache Server Directory index page.
@@ -24,6 +21,8 @@ class ApacheDirectoryCatalog(Catalog):
 
     Additional kwargs are passed through to the base Catalog.
     """
+
+    Record = namedtuple("Record", ("name", "modified", "size", "description", "is_directory", "full_path"))
 
     name = "apache_dir"
     version = "0.0.1"
@@ -112,7 +111,7 @@ class ApacheDirectoryCatalog(Catalog):
         parent_dir = self.urlpath.rstrip(path)[: self.urlpath.rstrip(path).rindex("/")] + "/" if parent else None
         directory = path.endswith("/")
 
-        return Record(
+        return ApacheDirectoryCatalog.Record(
             "parent" if parent else name,
             row["Last modified"],
             row.Size,
