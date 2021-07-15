@@ -46,7 +46,7 @@ def test_open(table_example):
     assert src.storage_options == storage_options
     assert src.metadata == metadata
 
-    expected = {"io": examples.table_path(), "dataframes": None, "kwargs": {"extra": "kwarg"}}
+    expected = {"urlpath": examples.table_path(), "dataframes": None, "kwargs": {"extra": "kwarg"}}
 
     for attr, value in expected.items():
         assert hasattr(src, attr)
