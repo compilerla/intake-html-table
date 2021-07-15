@@ -1,31 +1,7 @@
 import intake
 import pandas as pd
-import pytest
 
 from intake_html_table import HtmlTableSource
-
-from . import examples
-
-
-@pytest.fixture
-def cat_example():
-    yield intake.open_catalog(examples.cat_path())
-
-
-@pytest.fixture
-def document_example():
-    def _document_example(**kwargs):
-        return HtmlTableSource(examples.document_path(), **kwargs)
-
-    yield _document_example
-
-
-@pytest.fixture
-def table_example():
-    def _table_example(**kwargs):
-        return HtmlTableSource(examples.table_path(), **kwargs)
-
-    yield _table_example
 
 
 def test_plugin():
@@ -41,28 +17,28 @@ def test_plugin():
     assert plugin.partition_access is True
 
 
-def test_open(table_example):
+def test_open(table_path):
     storage_options = {"storage": "options"}
     metadata = {"meta": "data"}
 
-    src = table_example(storage_options=storage_options, metadata=metadata, extra="kwarg")
+    src = HtmlTableSource(table_path, storage_options=storage_options, metadata=metadata, extra="kwarg")
 
     assert src.container == "dataframe"
     assert src.description is None
     assert src.storage_options == storage_options
     assert src.metadata == metadata
 
-    expected = {"urlpath": examples.table_path(), "dataframes": None, "kwargs": {"extra": "kwarg"}}
+    expected = {"urlpath": table_path, "dataframes": None, "kwargs": {"extra": "kwarg"}}
 
     for attr, value in expected.items():
         assert hasattr(src, attr)
         assert getattr(src, attr) == value
 
 
-def test_read_single(table_example):
-    expected_df = pd.read_html(examples.table_path())[0]
+def test_read_single(table_path):
+    expected_df = pd.read_html(table_path)[0]
 
-    src = table_example()
+    src = HtmlTableSource(table_path)
 
     src.discover()
     assert src.npartitions == 1
@@ -72,10 +48,10 @@ def test_read_single(table_example):
     assert expected_df.equals(df)
 
 
-def test_read_multi(document_example):
-    expected_df = pd.concat(pd.read_html(examples.document_path()))
+def test_read_multi(document_path):
+    expected_df = pd.concat(pd.read_html(document_path))
 
-    src = document_example()
+    src = HtmlTableSource(document_path)
 
     src.discover()
     assert src.npartitions == 2
@@ -85,12 +61,12 @@ def test_read_multi(document_example):
     assert expected_df.equals(df)
 
 
-def test_read_kwargs(document_example):
+def test_read_kwargs(document_path):
     attrs = {"id": "data"}
     skiprows = 2
-    expected_df = pd.read_html(examples.document_path(), attrs=attrs, skiprows=skiprows)[0]
+    expected_df = pd.read_html(document_path, attrs=attrs, skiprows=skiprows)[0]
 
-    src = document_example(attrs=attrs, skiprows=skiprows)
+    src = HtmlTableSource(document_path, attrs=attrs, skiprows=skiprows)
 
     src.discover()
     assert src.npartitions == 1
@@ -100,12 +76,12 @@ def test_read_kwargs(document_example):
     assert expected_df.equals(df)
 
 
-def test_read_partition(document_example):
-    example_dfs = pd.read_html(examples.document_path())
+def test_read_partition(document_path):
+    example_dfs = pd.read_html(document_path)
     expected_df1 = example_dfs[0]
     expected_df2 = example_dfs[1]
 
-    src = document_example()
+    src = HtmlTableSource(document_path)
 
     src.discover()
     assert src.npartitions == 2
@@ -118,24 +94,33 @@ def test_read_partition(document_example):
     assert expected_df2.equals(df2)
 
 
-def test_read_cat_single(cat_example):
-    expected_df = pd.read_html(examples.table_path())[0]
+def test_read_cat_single(cat_path, table_path):
+    expected_df = pd.read_html(table_path)[0]
 
-    df = cat_example.table_single.read()
+    cat = intake.open_catalog(cat_path)
+    assert hasattr(cat, "table_single")
+
+    df = cat.table_single.read()
     assert expected_df.equals(df)
 
 
-def test_read_cat_multi(cat_example):
-    expected_df = pd.concat(pd.read_html(examples.document_path()))
+def test_read_cat_multi(cat_path, document_path):
+    expected_df = pd.concat(pd.read_html(document_path))
 
-    df = cat_example.table_concat.read()
+    cat = intake.open_catalog(cat_path)
+    assert hasattr(cat, "table_concat")
+
+    df = cat.table_concat.read()
     assert expected_df.equals(df)
 
 
-def test_read_cat_kwargs(cat_example):
+def test_read_cat_kwargs(cat_path, document_path):
     attrs = {"id": "data"}
     skiprows = 2
-    expected_df = pd.read_html(examples.document_path(), attrs=attrs, skiprows=skiprows)[0]
+    expected_df = pd.read_html(document_path, attrs=attrs, skiprows=skiprows)[0]
 
-    df = cat_example.table_kwargs.read()
+    cat = intake.open_catalog(cat_path)
+    assert hasattr(cat, "table_kwargs")
+
+    df = cat.table_kwargs.read()
     assert expected_df.equals(df)
