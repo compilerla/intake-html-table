@@ -124,3 +124,19 @@ def test_read_cat_kwargs(cat_path, document_path):
 
     df = cat.table_kwargs.read()
     assert expected_df.equals(df)
+
+
+def test_read_cat_partition(cat_path, document_path):
+    example_dfs = pd.read_html(document_path)
+    expected_df1 = example_dfs[0]
+    expected_df2 = example_dfs[1]
+
+    cat = intake.open_catalog(cat_path)
+    assert hasattr(cat, "table_concat")
+
+    # Read partitions is opposite order
+    df2 = cat.table_concat.read_partition(1)
+    df1 = cat.table_concat.read_partition(0)
+
+    assert expected_df1.equals(df1)
+    assert expected_df2.equals(df2)
