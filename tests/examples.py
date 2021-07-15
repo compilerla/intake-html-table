@@ -19,6 +19,10 @@ def get_path(path):
     return examples.joinpath(path).resolve()
 
 
+def cat_path():
+    return get_path("cat.yaml")
+
+
 def document_path():
     """Get the path for the `document.html` example file."""
     return get_path("document.html")

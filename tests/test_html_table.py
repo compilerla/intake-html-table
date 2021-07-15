@@ -1,9 +1,15 @@
+import intake
 import pandas as pd
 import pytest
 
 from intake_html_table import HtmlTableSource
 
 from . import examples
+
+
+@pytest.fixture
+def cat_example():
+    yield intake.open_catalog(examples.cat_path())
 
 
 @pytest.fixture
@@ -110,3 +116,26 @@ def test_read_partition(document_example):
 
     assert expected_df1.equals(df1)
     assert expected_df2.equals(df2)
+
+
+def test_read_cat_single(cat_example):
+    expected_df = pd.read_html(examples.table_path())[0]
+
+    df = cat_example.table_single.read()
+    assert expected_df.equals(df)
+
+
+def test_read_cat_multi(cat_example):
+    expected_df = pd.concat(pd.read_html(examples.document_path()))
+
+    df = cat_example.table_concat.read()
+    assert expected_df.equals(df)
+
+
+def test_read_cat_kwargs(cat_example):
+    attrs = {"id": "data"}
+    skiprows = 2
+    expected_df = pd.read_html(examples.document_path(), attrs=attrs, skiprows=skiprows)[0]
+
+    df = cat_example.table_kwargs.read()
+    assert expected_df.equals(df)

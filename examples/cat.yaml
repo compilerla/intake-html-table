@@ -1,0 +1,25 @@
+metadata:
+  description: Example catalog using the html_table driver
+  version: 1
+
+sources:
+  table_single:
+    description: Entry for table.html
+    driver: html_table
+    args:
+      urlpath: "{{ CATALOG_DIR }}/table.html"
+
+  table_concat:
+    description: Entry for the complete document.html
+    driver: html_table
+    args:
+      urlpath: "{{ CATALOG_DIR }}/document.html"
+
+  table_kwargs:
+    description: Entry for the data table in document.html, skipping the first 2 rows
+    driver: html_table
+    args:
+      urlpath: "{{ CATALOG_DIR }}/document.html"
+      attrs:
+        id: data
+      skiprows: 2
