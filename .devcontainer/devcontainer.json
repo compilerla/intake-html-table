@@ -27,5 +27,5 @@
   ],
 
   // Use 'postCreateCommand' to run commands after the container is created.
-  "postCreateCommand": "pip install -r .devcontainer/requirements.txt && .devcontainer/pre-commit.sh",
+  "postCreateCommand": ".devcontainer/postcreate.sh",
 }

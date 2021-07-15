@@ -1,3 +1,4 @@
+flake8
 ipykernel
 pre-commit
 pytest
