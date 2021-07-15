@@ -28,9 +28,6 @@ class HtmlTableSource(base.DataSource):
         self.dataframes = None
 
     def _load(self):
-        """
-        Initialize the DataFrame.
-        """
         self.dataframes = pd.read_html(self.io, **self.kwargs)
 
     def _get_schema(self):
