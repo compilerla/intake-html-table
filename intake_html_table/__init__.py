@@ -2,5 +2,5 @@
 
 import intake
 
-from .catalog import ApacheDirectoryCatalog
-from .source import HtmlTableSource
+from .apache_dir import ApacheDirectoryCatalog
+from .html_table import HtmlTableSource
