@@ -36,8 +36,8 @@ setup(
     license="Apache 2.0",
     entry_points={
         "intake.drivers": [
-            "apache_dir = intake_html_table.catalog:ApacheDirectoryCatalog",
-            "html_table = intake_html_table.source:HtmlTableSource",
+            "apache_dir = intake_html_table.apache_dir:ApacheDirectoryCatalog",
+            "html_table = intake_html_table.html_table:HtmlTableSource",
         ]
     },
     keywords="intake, catalog",
