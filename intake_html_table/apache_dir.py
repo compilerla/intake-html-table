@@ -5,6 +5,8 @@ from intake.catalog.local import LocalCatalogEntry
 
 import numpy as np
 
+from .html_table import HtmlTableSource
+
 
 class ApacheDirectoryCatalog(Catalog):
     """
@@ -43,8 +45,6 @@ class ApacheDirectoryCatalog(Catalog):
         self.dataframe = None
 
     def _load(self):
-        from intake_html_table import HtmlTableSource
-
         self._entries = {}
         # read and remove rows with all null values (like table separators)
         df = HtmlTableSource(self.urlpath).read().dropna(how="all")

@@ -1,9 +1,9 @@
-from intake.source import base
+from intake.source.base import DataSource, Schema
 
 import pandas as pd
 
 
-class HtmlTableSource(base.DataSource):
+class HtmlTableSource(DataSource):
     """
     HTML to dataframes reader. Tables are read and stored in-memory.
 
@@ -34,7 +34,7 @@ class HtmlTableSource(base.DataSource):
         if self.dataframes is None:
             self._load()
 
-        return base.Schema(
+        return Schema(
             dtype=None,
             shape=(None,),
             npartitions=len(self.dataframes),
