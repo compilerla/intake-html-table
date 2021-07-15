@@ -5,8 +5,7 @@ from intake.catalog.local import LocalCatalogEntry
 
 import numpy as np
 
-
-Record = namedtuple("Record", ("name", "modified", "size", "description", "is_directory", "full_path"))
+from .html_table import HtmlTableSource
 
 
 class ApacheDirectoryCatalog(Catalog):
@@ -25,35 +24,34 @@ class ApacheDirectoryCatalog(Catalog):
     Additional kwargs are passed through to the base Catalog.
     """
 
+    Record = namedtuple("Record", ("name", "modified", "size", "description", "is_directory", "full_path"))
+
     name = "apache_dir"
     version = "0.0.1"
     columns = {"Name": "string", "Last modified": "datetime64", "Size": "float64", "Description": "string"}
 
-    def __init__(self, urlpath, csv_kwargs={}, **kwargs):
+    def __init__(self, urlpath, csv_kwargs=None, storage_options=None, **kwargs):
         self.dataframe = None
         self.urlpath = urlpath.rstrip("/")
         self.csv_kwargs = csv_kwargs
-        self.description = f"Apache server directory <{urlpath}>"
+        self.storage_options = storage_options
+
+        if "description" not in kwargs:
+            kwargs["description"] = f"Apache server directory <{urlpath}>"
+
         super(ApacheDirectoryCatalog, self).__init__(**kwargs)
 
     def _close(self):
         self.dataframe = None
-        return super()._close()
 
     def _load(self):
-        from intake_html_table import HtmlTableSource
-
         self._entries = {}
-
         # read and remove rows with all null values (like table separators)
         df = HtmlTableSource(self.urlpath).read().dropna(how="all")
-
         # fixup sizes
         df["Size"] = df["Size"].apply(self._expand_size)
-
         # convert to known dtypes
         self.dataframe = df.astype(self.columns)
-
         # add a catalog entry for each row
         self.dataframe.apply(self._add_entry, axis=1)
 
@@ -112,7 +110,7 @@ class ApacheDirectoryCatalog(Catalog):
         parent_dir = self.urlpath.rstrip(path)[: self.urlpath.rstrip(path).rindex("/")] + "/" if parent else None
         directory = path.endswith("/")
 
-        return Record(
+        return ApacheDirectoryCatalog.Record(
             "parent" if parent else name,
             row["Last modified"],
             row.Size,
@@ -134,6 +132,8 @@ class ApacheDirectoryCatalog(Catalog):
 
         if self.csv_kwargs:
             args["csv_kwargs"] = self.csv_kwargs
+        if self.storage_options:
+            args["storage_options"] = self.storage_options
 
         return LocalCatalogEntry(name, description, driver, True, args, getenv=False, getshell=False, catalog=self)
 
@@ -153,8 +153,3 @@ class ApacheDirectoryCatalog(Catalog):
         e.container = "catalog"
 
         return e
-
-    def read(self):
-        if self.dataframe is None:
-            self._load()
-        return self.dataframe

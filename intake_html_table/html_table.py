@@ -1,13 +1,13 @@
-from intake.source import base
+from intake.source.base import DataSource, Schema
 
 import pandas as pd
 
 
-class HtmlTableSource(base.DataSource):
+class HtmlTableSource(DataSource):
     """
     HTML to dataframes reader. Tables are read and stored in-memory.
 
-    Partition by individual table(s) read from source.
+    Partition by individual table(s) read from urlpath.
 
     Forwards extra keyword arguments to `pandas.read_html()`.
     """
@@ -17,8 +17,8 @@ class HtmlTableSource(base.DataSource):
     container = "dataframe"
     partition_access = True
 
-    def __init__(self, io, storage_options=None, metadata=None, **kwargs):
-        self.io = io
+    def __init__(self, urlpath, storage_options=None, metadata=None, **kwargs):
+        self.urlpath = urlpath
         self.dataframes = None
         self.kwargs = kwargs
 
@@ -28,16 +28,13 @@ class HtmlTableSource(base.DataSource):
         self.dataframes = None
 
     def _load(self):
-        """
-        Initialize the DataFrame.
-        """
-        self.dataframes = pd.read_html(self.io, **self.kwargs)
+        self.dataframes = pd.read_html(self.urlpath, **self.kwargs)
 
     def _get_schema(self):
         if self.dataframes is None:
             self._load()
 
-        return base.Schema(
+        return Schema(
             dtype=None,
             shape=(None,),
             npartitions=len(self.dataframes),
