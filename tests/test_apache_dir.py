@@ -30,6 +30,14 @@ def test_open(index_path):
     assert cat.urlpath == index_path
     assert cat.csv_kwargs == csv_kwargs
     assert cat.storage_options == storage_options
+    assert isinstance(cat.dataframe, pd.DataFrame)
+
+
+def test_close(index_path):
+    cat = ApacheDirectoryCatalog(index_path)
+
+    cat.close()
+    assert cat.dataframe is None
 
 
 def test_list_root(index_path):
