@@ -34,13 +34,12 @@ class ApacheDirectoryCatalog(Catalog):
     _re_contains_index = re.compile(r"\/index\.html?\/", re.IGNORECASE)
     _re_ends_index = re.compile(r"\/index\.html?$", re.IGNORECASE)
 
-    def __init__(self, urlpath, csv_kwargs=None, storage_options=None, **kwargs):
+    def __init__(self, urlpath, csv_kwargs=None, **kwargs):
         self.dataframe = None
         # strip any trailing / for later entry path building
         self.urlpath = str(urlpath).rstrip("/")
         self.indexpath = self._re_ends_index.search(self.urlpath)
         self.csv_kwargs = csv_kwargs
-        self.storage_options = storage_options
 
         if "description" not in kwargs:
             kwargs["description"] = f"Apache server directory <{urlpath}>"
