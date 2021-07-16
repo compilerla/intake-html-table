@@ -1,3 +1,5 @@
+import pandas as pd
+
 from intake_html_table import ApacheDirectoryCatalog
 
 
@@ -53,3 +55,30 @@ def test_list_sub_parent(index_path):
     assert "parent" in cat["sub/index.html"]
     parent = cat["sub/index.html"]["parent"]
     assert list(parent) == expected
+
+
+def test_read_root_data(index_path):
+    cat = ApacheDirectoryCatalog(index_path)
+    data_entry = cat["data.csv"]
+    expected = pd.read_csv(data_entry.urlpath)
+
+    df = data_entry.read()
+    assert expected.equals(df)
+
+
+def test_read_sub_data(index_path):
+    cat = ApacheDirectoryCatalog(index_path)
+    data_entry = cat["sub/index.html"]["data.csv"]
+    expected = pd.read_csv(data_entry.urlpath)
+
+    df = data_entry.read()
+    assert expected.equals(df)
+
+
+def test_read_sub_parent_data(index_path):
+    cat = ApacheDirectoryCatalog(index_path)
+    data_entry = cat["sub/index.html"]["parent"]["data.csv"]
+    expected = pd.read_csv(data_entry.urlpath)
+
+    df = data_entry.read()
+    assert expected.equals(df)
