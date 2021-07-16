@@ -1,3 +1,4 @@
+import intake
 import pandas as pd
 
 from intake_html_table import ApacheDirectoryCatalog
@@ -77,6 +78,55 @@ def test_read_sub_data(index_path):
 
 def test_read_sub_parent_data(index_path):
     cat = ApacheDirectoryCatalog(index_path)
+    data_entry = cat["sub/index.html"]["parent"]["data.csv"]
+    expected = pd.read_csv(data_entry.urlpath)
+
+    df = data_entry.read()
+    assert expected.equals(df)
+
+
+def test_cat_list_root(cat_path):
+    expected = ["parent", "sub/index.html", "data.csv"]
+    cat = intake.open_catalog(cat_path)
+
+    assert hasattr(cat, "apache_local")
+    assert list(cat.apache_local) == expected
+
+
+def test_cat_list_sub(cat_path):
+    expected = ["parent", "data.csv"]
+    cat = intake.open_catalog(cat_path).apache_local
+
+    assert list(cat["sub/index.html"]) == expected
+
+
+def test_cat_list_sub_parent(cat_path):
+    cat = intake.open_catalog(cat_path).apache_local
+
+    parent = cat["sub/index.html"]["parent"]
+    assert list(parent) == list(cat)
+
+
+def test_cat_read_root_data(cat_path):
+    cat = intake.open_catalog(cat_path).apache_local
+    data_entry = cat["data.csv"]
+    expected = pd.read_csv(data_entry.urlpath)
+
+    df = data_entry.read()
+    assert expected.equals(df)
+
+
+def test_cat_read_sub_data(cat_path):
+    cat = intake.open_catalog(cat_path).apache_local
+    data_entry = cat["sub/index.html"]["data.csv"]
+    expected = pd.read_csv(data_entry.urlpath)
+
+    df = data_entry.read()
+    assert expected.equals(df)
+
+
+def test_cat_read_sub_parent_data(cat_path):
+    cat = intake.open_catalog(cat_path).apache_local
     data_entry = cat["sub/index.html"]["parent"]["data.csv"]
     expected = pd.read_csv(data_entry.urlpath)
 

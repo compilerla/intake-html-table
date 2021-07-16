@@ -23,3 +23,9 @@ sources:
       attrs:
         id: data
       skiprows: 2
+
+  apache_local:
+    description: Entry for the sample Apache index.html
+    driver: apache_dir
+    args:
+      urlpath: "{{ CATALOG_DIR }}/index.html"

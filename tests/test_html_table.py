@@ -94,7 +94,7 @@ def test_read_partition(document_path):
     assert expected_df2.equals(df2)
 
 
-def test_read_cat_single(cat_path, table_path):
+def test_cat_read_single(cat_path, table_path):
     expected_df = pd.read_html(table_path)[0]
 
     cat = intake.open_catalog(cat_path)
@@ -104,7 +104,7 @@ def test_read_cat_single(cat_path, table_path):
     assert expected_df.equals(df)
 
 
-def test_read_cat_multi(cat_path, document_path):
+def test_cat_read_multi(cat_path, document_path):
     expected_df = pd.concat(pd.read_html(document_path))
 
     cat = intake.open_catalog(cat_path)
@@ -114,7 +114,7 @@ def test_read_cat_multi(cat_path, document_path):
     assert expected_df.equals(df)
 
 
-def test_read_cat_kwargs(cat_path, document_path):
+def test_cat_read_kwargs(cat_path, document_path):
     attrs = {"id": "data"}
     skiprows = 2
     expected_df = pd.read_html(document_path, attrs=attrs, skiprows=skiprows)[0]
@@ -126,7 +126,7 @@ def test_read_cat_kwargs(cat_path, document_path):
     assert expected_df.equals(df)
 
 
-def test_read_cat_partition(cat_path, document_path):
+def test_cat_read_partition(cat_path, document_path):
     example_dfs = pd.read_html(document_path)
     expected_df1 = example_dfs[0]
     expected_df2 = example_dfs[1]
