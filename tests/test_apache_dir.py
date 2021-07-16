@@ -27,3 +27,29 @@ def test_open(index_path):
     assert cat.urlpath == index_path
     assert cat.csv_kwargs == csv_kwargs
     assert cat.storage_options == storage_options
+
+
+def test_list_root(index_path):
+    expected = ["parent", "sub/index.html", "data.csv"]
+
+    cat = ApacheDirectoryCatalog(index_path)
+
+    assert list(cat) == expected
+
+
+def test_list_sub(index_path):
+    expected = ["parent", "data.csv"]
+
+    cat = ApacheDirectoryCatalog(index_path)
+
+    assert "sub/index.html" in cat
+    assert list(cat["sub/index.html"]) == expected
+
+
+def test_list_sub_parent(index_path):
+    cat = ApacheDirectoryCatalog(index_path)
+    expected = list(cat)
+
+    assert "parent" in cat["sub/index.html"]
+    parent = cat["sub/index.html"]["parent"]
+    assert list(parent) == expected
