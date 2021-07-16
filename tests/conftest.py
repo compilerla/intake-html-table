@@ -33,6 +33,12 @@ def document_path():
 
 
 @pytest.fixture
+def index_path():
+    """Get the path for the `index.html` example file."""
+    yield get_path("index.html")
+
+
+@pytest.fixture
 def table_path():
     """Get the path for the `table.html` example file."""
     yield get_path("table.html")

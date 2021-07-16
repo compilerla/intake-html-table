@@ -1,0 +1,5 @@
+dir,file,description
+./,index.html,the top-level directory index
+./,data.csv,the top-level data file
+./sub1,index.html,the sub1 directory index
+./sub1,data.csv,the sub1 directory data file
