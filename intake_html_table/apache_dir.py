@@ -1,4 +1,5 @@
 from collections import namedtuple
+import re
 
 from intake.catalog.base import Catalog
 from intake.catalog.local import LocalCatalogEntry
@@ -30,9 +31,14 @@ class ApacheDirectoryCatalog(Catalog):
     version = "0.0.1"
     columns = {"Name": "string", "Last modified": "datetime64", "Size": "float64", "Description": "string"}
 
+    _re_contains_index = re.compile(r"\/index\.html?\/", re.IGNORECASE)
+    _re_ends_index = re.compile(r"\/index\.html?$", re.IGNORECASE)
+
     def __init__(self, urlpath, csv_kwargs=None, storage_options=None, **kwargs):
         self.dataframe = None
-        self.urlpath = urlpath.rstrip("/")
+        # strip any trailing / for later entry path building
+        self.urlpath = str(urlpath).rstrip("/")
+        self.indexpath = self._re_ends_index.search(self.urlpath)
         self.csv_kwargs = csv_kwargs
         self.storage_options = storage_options
 
@@ -46,9 +52,9 @@ class ApacheDirectoryCatalog(Catalog):
 
     def _load(self):
         self._entries = {}
-        # read and remove rows with all null values (like table separators)
+        # read and remove table separator rows
         df = HtmlTableSource(self.urlpath).read().dropna(how="all")
-        # fixup sizes
+        # make numeric sizes
         df["Size"] = df["Size"].apply(self._expand_size)
         # convert to known dtypes
         self.dataframe = df.astype(self.columns)
@@ -104,19 +110,33 @@ class ApacheDirectoryCatalog(Catalog):
         ```
         """
         path = row.Name
-        full_path = path if path.startswith(self.urlpath) else f"{self.urlpath}/{path}"
-        name = path.replace(self.urlpath, "").rstrip("/")
         parent = row.Name.lower() == "parent directory"
-        parent_dir = self.urlpath.rstrip(path)[: self.urlpath.rstrip(path).rindex("/")] + "/" if parent else None
-        directory = path.endswith("/")
+
+        if parent:
+            target = self._re_ends_index.sub("", self.urlpath).rstrip("/") if self.indexpath else self.urlpath
+            full_path = target[: target.rindex("/") + 1]
+        else:
+            full_path = path if path.startswith(self.urlpath) else f"{self.urlpath}/{path}"
+
+        if self._re_contains_index.search(full_path):
+            # replace "/index.html/" in the middle of path with "/"
+            full_path = self._re_contains_index.sub("/", full_path)
+
+        if self.indexpath and parent:
+            # append "/index.html" on the end of full_path
+            # self.indexpath.group() starts with a "/", so strip any extra
+            full_path = full_path.rstrip("/") + self.indexpath.group()
+
+        name = "parent" if parent else path.replace(self.urlpath, "").rstrip("/")
+        directory = parent or full_path.endswith("/") or self._re_ends_index.search(full_path)
 
         return ApacheDirectoryCatalog.Record(
-            "parent" if parent else name,
+            name,
             row["Last modified"],
             row.Size,
             row.Description,
             directory,
-            parent_dir if parent else full_path,
+            full_path,
         )
 
     def _file_entry(self, name, urlpath):
