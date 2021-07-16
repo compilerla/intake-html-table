@@ -35,6 +35,14 @@ def test_open(table_path):
         assert getattr(src, attr) == value
 
 
+def test_close(table_path):
+    src = HtmlTableSource(table_path)
+    src.dataframes = [pd.DataFrame([0, 1, 2])]
+
+    src.close()
+    assert src.dataframes is None
+
+
 def test_read_single(table_path):
     expected_df = pd.read_html(table_path)[0]
 
