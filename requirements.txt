@@ -1,5 +1,6 @@
 aiohttp>=3.7.4
 beautifulsoup4>=4.9.3
+html5lib>=1.1
 intake>=0.6.2
 lxml>=4.6.3
 msgpack>=1.0.2
