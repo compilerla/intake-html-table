@@ -56,7 +56,13 @@ sources:
 Run the test suite (from the root of the repository):
 
 ```bash
-pytest
+coverage run -m pytest
+```
+
+To view the `coverage` report with indicators for untested (missed) lines:
+
+```
+coverage report -m
 ```
 
 Tests also run via [GitHub Action](./.github/workflows/test.yml) on events against the `main` branch.
