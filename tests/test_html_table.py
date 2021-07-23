@@ -4,43 +4,43 @@ import pandas as pd
 from intake_html_table import HtmlTableSource
 
 
-def test_plugin():
-    plugin = HtmlTableSource
+# def test_plugin():
+#     plugin = HtmlTableSource
 
-    assert isinstance(plugin.name, str)
-    assert isinstance(plugin.version, str)
-    assert isinstance(plugin.container, str)
-    assert isinstance(plugin.partition_access, bool)
+#     assert isinstance(plugin.name, str)
+#     assert isinstance(plugin.version, str)
+#     assert isinstance(plugin.container, str)
+#     assert isinstance(plugin.partition_access, bool)
 
-    assert plugin.name == "html_table"
-    assert plugin.container == "dataframe"
-    assert plugin.partition_access is True
-
-
-def test_open(table_path):
-    storage_options = {"storage": "options"}
-    metadata = {"meta": "data"}
-
-    src = HtmlTableSource(table_path, storage_options=storage_options, metadata=metadata, extra="kwarg")
-
-    assert src.container == "dataframe"
-    assert src.description is None
-    assert src.storage_options == storage_options
-    assert src.metadata == metadata
-
-    expected = {"urlpath": table_path, "dataframes": None, "kwargs": {"extra": "kwarg"}}
-
-    for attr, value in expected.items():
-        assert hasattr(src, attr)
-        assert getattr(src, attr) == value
+#     assert plugin.name == "html_table"
+#     assert plugin.container == "dataframe"
+#     assert plugin.partition_access is True
 
 
-def test_close(table_path):
-    src = HtmlTableSource(table_path)
-    src.dataframes = [pd.DataFrame([0, 1, 2])]
+# def test_open(table_path):
+#     storage_options = {"storage": "options"}
+#     metadata = {"meta": "data"}
 
-    src.close()
-    assert src.dataframes is None
+#     src = HtmlTableSource(table_path, storage_options=storage_options, metadata=metadata, extra="kwarg")
+
+#     assert src.container == "dataframe"
+#     assert src.description is None
+#     assert src.storage_options == storage_options
+#     assert src.metadata == metadata
+
+#     expected = {"urlpath": table_path, "dataframes": None, "kwargs": {"extra": "kwarg"}}
+
+#     for attr, value in expected.items():
+#         assert hasattr(src, attr)
+#         assert getattr(src, attr) == value
+
+
+# def test_close(table_path):
+#     src = HtmlTableSource(table_path)
+#     src.dataframes = [pd.DataFrame([0, 1, 2])]
+
+#     src.close()
+#     assert src.dataframes is None
 
 
 def test_read_single(table_path):
