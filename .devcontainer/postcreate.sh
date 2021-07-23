@@ -6,6 +6,7 @@ python -m pip install --upgrade pip
 
 # install dev requirements
 pip install -r .devcontainer/requirements.txt
+pip install -r tests/requirements.txt
 
 # install the package
 pip install -e .
