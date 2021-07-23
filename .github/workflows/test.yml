@@ -13,9 +13,21 @@ jobs:
       - name: Install package and dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install coverage pytest
+          pip install -r tests/requirements.txt
           pip install -e .
       - name: Test with pytest
         run: |
           coverage run -m pytest
           coverage report -m
+          coverage-badge -fqo tests/coverage.svg
+      - name: Update coverage
+        run: |
+          git config user.name "GitHub Actions"
+          git config user.email "actions@github.com"
+          git add tests/coverage.svg
+          timestamp=$(date -u)
+          git commit -m "chore(tests): update coverage ${timestamp}
+
+
+          on-behalf-of: @compilerla" || exit 0
+          git push

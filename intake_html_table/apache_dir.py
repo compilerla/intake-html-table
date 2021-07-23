@@ -29,7 +29,7 @@ class ApacheDirectoryCatalog(Catalog):
 
     name = "apache_dir"
     version = "0.0.1"
-    columns = {"Name": "string", "Last modified": "datetime64", "Size": "float64", "Description": "string"}
+    columns = {"Name": "string", "Last modified": "datetime64[ns]", "Size": "float64", "Description": "string"}
 
     _re_contains_index = re.compile(r"\/index\.html?\/", re.IGNORECASE)
     _re_ends_index = re.compile(r"\/index\.html?$", re.IGNORECASE)
@@ -52,7 +52,7 @@ class ApacheDirectoryCatalog(Catalog):
     def _load(self):
         self._entries = {}
         # read and remove table separator rows
-        df = HtmlTableSource(self.urlpath).read().dropna(how="all")
+        df = HtmlTableSource(self.urlpath).read().dropna(how="all").reset_index(drop=True)
         # make numeric sizes
         df["Size"] = df["Size"].apply(self._expand_size)
         # convert to known dtypes

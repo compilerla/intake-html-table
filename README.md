@@ -1,5 +1,7 @@
 # intake-html-table
 
+![Test coverage percentage](tests/coverage.svg)
+
 [Intake](https://intake.readthedocs.io/) plugin for HTML tables.
 
 ## Installation
