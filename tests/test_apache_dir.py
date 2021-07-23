@@ -36,8 +36,32 @@ def test_open(index_path):
 def test_close(index_path):
     cat = ApacheDirectoryCatalog(index_path)
 
+    # de-initializes df
     cat.close()
     assert cat.dataframe is None
+
+    # re-initializes df
+    cat.force_reload()
+    assert cat.dataframe is not None
+
+
+def test_dataframe(index_path):
+    df = ApacheDirectoryCatalog(index_path).dataframe
+
+    # verify column index and types
+    dtypes = df.dtypes
+    assert list(dtypes.index) == list(ApacheDirectoryCatalog.columns.keys())
+    assert list(dtypes) == list(ApacheDirectoryCatalog.columns.values())
+
+    # verify row index
+    assert len(df) == 3
+    assert list(df.index) == list(range(len(df)))
+
+    # verify data
+    assert df.loc[0, "Name"] == "Parent Directory"
+    assert df.loc[1, "Name"] == "sub/index.html"
+    assert df.loc[2, "Name"] == "data.csv"
+    assert df.loc[2, "Size"] == 459.0
 
 
 def test_list_root(index_path):
