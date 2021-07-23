@@ -30,4 +30,5 @@ jobs:
 
 
           on-behalf-of: @compilerla" || exit 0
-          git push
+          git pull --rebase origin ${{ github.head_ref }}
+          git push origin HEAD:${{ github.head_ref }}
