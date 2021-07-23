@@ -63,9 +63,17 @@ coverage run -m pytest
 
 To view the `coverage` report with indicators for untested (missed) lines:
 
-```
+```bash
 coverage report -m
 ```
+
+To upate the README badge ![Test coverage percentage](tests/coverage.svg) from the latest test run:
+
+```bash
+coverage-badge -f -o tests/coverage.svg
+```
+
+The `-f` argument ensures the existing badge is overwritten.
 
 Tests also run via [GitHub Action](./.github/workflows/test.yml) on events against the `main` branch.
 
