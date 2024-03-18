@@ -1,0 +1,11 @@
+services:
+  dev:
+    build:
+      context: ..
+      dockerfile: .devcontainer/Dockerfile
+    image: compilerla/intake-html-table:dev
+    entrypoint: []
+    command: sleep infinity
+    working_dir: /home/compiler/intake-html-table
+    volumes:
+      - ../:/home/compiler/intake-html-table

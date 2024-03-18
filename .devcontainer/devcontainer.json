@@ -1,31 +1,31 @@
 // For format details, see https://aka.ms/devcontainer.json.
 {
   "name": "intake-html-table",
-  "dockerComposeFile": "compose.yaml",
+  "dockerComposeFile": ["./compose.yml"],
   "service": "dev",
-  "workspaceFolder": "/intake-html-table",
-
-  // Set *default* container specific settings.json values on container create.
-  "settings": {
-      "python.pythonPath": "/usr/local/bin/python",
-      "python.languageServer": "Pylance",
-      "python.linting.enabled": true,
-      "files.trimTrailingWhitespace": true,
-      "files.insertFinalNewline": true,
-      "terminal.integrated.defaultProfile.linux": "bash",
-      "terminal.integrated.profiles.linux": {
+  "runServices": ["dev"],
+  "workspaceFolder": "/home/compiler/intake-html-table",
+  "postAttachCommand": ["/bin/bash", ".devcontainer/postAttach.sh"],
+  "postCreateCommand": "pip install -e .[dev]",
+  "customizations": {
+    "vscode": {
+      "settings": {
+        "terminal.integrated.defaultProfile.linux": "bash",
+        "terminal.integrated.profiles.linux": {
           "bash": {
-              "path": "/bin/bash"
+            "path": "/bin/bash"
           }
+        }
       },
-  },
-
-  // Add the IDs of extensions you want installed when the container is created.
-  "extensions": [
-      "ms-python.python",
-      "ms-python.vscode-pylance",
-  ],
-
-  // Use 'postCreateCommand' to run commands after the container is created.
-  "postCreateCommand": ".devcontainer/postcreate.sh",
+      "extensions": [
+        "eamodio.gitlens",
+        "esbenp.prettier-vscode",
+        "mhutchie.git-graph",
+        "ms-python.python",
+        "ms-python.black-formatter",
+        "ms-python.flake8",
+        "tamasfe.even-better-toml"
+      ]
+    }
+  }
 }
